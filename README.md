@@ -20,8 +20,7 @@ TARGET SOURCE
 
 O script, instalado em `/usr/local/bin/sd-boot-btrfs.py`, roda semanalmente através do systemd e requer `python-dasbus`.
 
-```console
-$ systemctl cat sabugo-btrfs.timer
+```ini
 # /etc/systemd/system/sabugo-btrfs.timer
 [Unit]
 Description=Snapshot semanal do subvolume raiz
@@ -35,8 +34,7 @@ Persistent=true
 WantedBy=timers.target
 ```
 
-```console
-$ systemctl cat sabugo-btrfs.service
+```ini
 # /etc/systemd/system/sabugo-btrfs.service
 [Unit]
 Description=Cria snapshot do subvolume raiz
