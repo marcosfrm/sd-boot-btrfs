@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 import btrfsutil, os, psutil, re, signal, shutil, sys
+from contextlib import contextmanager
 from datetime import datetime
 from dasbus.connection import SystemMessageBus
 from dasbus.unix import GLibClientUnix
 from dasbus.error import DBusError
-from contextlib import contextmanager
 
 # CONFIGURAÇÃO
 # =============================================================================
@@ -112,7 +112,7 @@ def main():
             backup_esp()
 
             snap_base = ORIGEM.strip('/').replace('/', '-')
-            snap_pref = f"@{snap_base}_" if snap_base else "@_"
+            snap_pref = f"@{snap_base}_"
             snap_nome = f"{snap_pref}{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             snap_path = os.path.join(DESTINO, snap_nome)
             dir_conf = os.path.dirname(CONFIG_ORIGEM)
