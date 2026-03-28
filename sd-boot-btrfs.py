@@ -5,7 +5,6 @@ from contextlib import contextmanager
 from datetime import datetime
 from dasbus.connection import SystemMessageBus
 from dasbus.unix import GLibClientUnix
-from dasbus.error import DBusError
 
 # CONFIGURAÇÃO
 # =============================================================================
