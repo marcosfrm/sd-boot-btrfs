@@ -84,6 +84,7 @@ def rotacionar_snapshots(snap_pref, dir_conf):
     for path, _ in snaps[:-MANTER]:
         snap_remove = os.path.join(DESTINO, path)
         btrfsutil.delete_subvolume(snap_remove)
+        btrfsutil.sync(ORIGEM)
 
         conf_remove = os.path.join(dir_conf, f"{path}.conf")
         if os.path.exists(conf_remove):
@@ -124,6 +125,7 @@ def main():
             except Exception as e:
                 print(f"Erro ao criar entrada de inicialização: {e}. Desfazendo snapshot {snap_nome}.", file=sys.stderr)
                 btrfsutil.delete_subvolume(snap_path)
+                btrfsutil.sync(ORIGEM)
                 status = 1
 
             rotacionar_snapshots(snap_pref, dir_conf)
