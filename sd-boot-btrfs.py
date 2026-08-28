@@ -37,7 +37,7 @@ def esperar_gerenciador_pacotes():
 
 def backup_esp():
     if not (os.path.ismount(ESP_MNT) and os.access(ESP_MNT, os.R_OK | os.X_OK)):
-        raise RuntimeError(f"{ESP_MNT} não está montado ou está inacessível.")
+        raise RuntimeError(f"{ESP_MNT} está desmontado ou inacessível.")
 
     if os.path.exists(ESP_BKP):
         if os.path.ismount(ESP_BKP):
@@ -123,7 +123,7 @@ def main():
                 criar_entrada_boot(snap_nome, dir_conf)
                 status = 0
             except Exception as e:
-                print(f"Erro ao criar entrada de inicialização: {e}. Desfazendo snapshot {snap_nome}.", file=sys.stderr)
+                print(f"Desfazendo snapshot {snap_nome}, erro ao criar entrada de inicialização: {e}", file=sys.stderr)
                 btrfsutil.delete_subvolume(snap_path)
                 btrfsutil.sync(ORIGEM)
                 status = 1
