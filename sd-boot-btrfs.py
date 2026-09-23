@@ -159,11 +159,11 @@ def main():
                 btrfsutil.delete_subvolume(snap_path)
                 btrfsutil.sync(ORIGEM)
 
-                if os.path.exists(dir_boot):
-                    shutil.rmtree(dir_boot)
-
                 if os.path.exists(ent_conf):
                     os.remove(ent_conf)
+
+                if os.path.exists(dir_boot):
+                    shutil.rmtree(dir_boot)
 
                 sync_esp()
                 status = 1
