@@ -27,7 +27,7 @@ Description=Snapshot semanal do subvolume raiz
 
 [Timer]
 OnCalendar=weekly
-RandomizedDelaySec=1h
+RandomizedDelaySec=10min
 Persistent=true
 
 [Install]
