@@ -19,7 +19,7 @@ _libc = ctypes.CDLL('libc.so.6', use_errno=True)
 _libc.syncfs.argtypes = [ctypes.c_int]
 _libc.syncfs.restype = ctypes.c_int
 
-def syncfs(fd: int):
+def syncfs(fd):
     if _libc.syncfs(fd) != 0:
         err = ctypes.get_errno()
         raise OSError(err, os.strerror(err))
