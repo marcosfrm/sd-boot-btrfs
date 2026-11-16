@@ -105,11 +105,17 @@ def criar_entrada_boot(snap_nome, ent_conf):
     sync_esp()
 
 def rotacionar_snapshots(snap_pref, dir_conf):
+    id_atual = btrfsutil.subvolume_id(ORIGEM)
+
     with btrfsutil.SubvolumeIterator(DESTINO, info=True) as it:
         snaps = sorted([x for x in it if x[0].startswith(snap_pref)], key=lambda x: x[1].otime)
 
     snap_mudou = False
-    for path, _ in snaps[:-MANTER]:
+    for path, info in snaps[:-MANTER]:
+        if info.id == id_atual:
+            print(f"Pulando remoção do snapshot em uso {path}.", file=sys.stderr)
+            continue
+
         snap_remove = os.path.join(DESTINO, path)
         btrfsutil.delete_subvolume(snap_remove)
         snap_mudou = True
@@ -130,7 +136,12 @@ def rotacionar_snapshots(snap_pref, dir_conf):
 # =============================================================================
 def main():
     if os.geteuid() != 0:
-        raise SystemExit("Este script precisa de privilégio de root.")
+        print("Este script precisa de privilégio de root.", file=sys.stderr)
+        return 1
+
+    if btrfsutil.subvolume_path(ORIGEM) != '@':
+        print("Diretório raiz é um snapshot, saindo.", file=sys.stderr)
+        return 0
 
     # ignoramos SIGTERM
     # systemd enviará SIGKILL depois de TimeoutStopSec nos casos patológicos
