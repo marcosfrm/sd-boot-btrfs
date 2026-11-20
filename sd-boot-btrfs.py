@@ -8,14 +8,14 @@ from dasbus.unix import GLibClientUnix
 
 # CONFIGURAÇÃO
 # =============================================================================
-ORIGEM, DESTINO, MANTER = '/', '/snapshots', 4
-CONFIG_ORIGEM = '/boot/loader/entries/arch-default.conf'
-GER_PKG = ('/usr/bin/yay', '/usr/bin/pacman')
-ESP_MNT = '/boot'
+ORIGEM, DESTINO, MANTER = "/", "/snapshots", 4
+CONFIG_ORIGEM = "/boot/loader/entries/arch-default.conf"
+GER_PKG = ("/usr/bin/yay", "/usr/bin/pacman")
+ESP_MNT = "/boot"
 
 # AUXILIARES
 # =============================================================================
-_libc = ctypes.CDLL('libc.so.6', use_errno=True)
+_libc = ctypes.CDLL("libc.so.6", use_errno=True)
 _libc.syncfs.argtypes = [ctypes.c_int]
 _libc.syncfs.restype = ctypes.c_int
 
@@ -49,7 +49,7 @@ def substituir_ou_anexar(texto, padrao, substituicao):
 
 def esperar_gerenciador_pacotes():
     # requer root para processos de usuários diferentes
-    procs = [p for p in psutil.process_iter(['exe', 'name']) if p.info['exe'] in GER_PKG]
+    procs = [p for p in psutil.process_iter(["exe", "name"]) if p.info["exe"] in GER_PKG]
     if procs:
         detalhes = ", ".join(f"{p.pid}:{p.info['name']}" for p in procs)
         print(f"Aguardando {len(procs)} processo(s) [{detalhes}]...", file=sys.stderr)
@@ -61,13 +61,13 @@ def copiar_arquivos_boot(dir_boot):
 
     os.makedirs(dir_boot, exist_ok=True)
 
-    with open(CONFIG_ORIGEM, 'r') as f:
+    with open(CONFIG_ORIGEM, "r") as f:
         linhas = f.readlines()
 
     for l in linhas:
         l = l.strip().split()
-        if l and l[0] in ('linux', 'initrd'):
-            src = os.path.join(ESP_MNT, l[1].lstrip('/'))
+        if l and l[0] in ("linux", "initrd"):
+            src = os.path.join(ESP_MNT, l[1].lstrip("/"))
             if os.path.exists(src):
                 # caminho da origem sempre em relação à ESP
                 # eventuais subdiretórios na origem são descartados no destino
@@ -80,7 +80,7 @@ def criar_entrada_boot(snap_nome, ent_conf):
     # sistema de arquivos em relação ao subvolume top-level
     subvol_path = os.path.join(btrfsutil.subvolume_path(DESTINO), snap_nome)
 
-    with open(CONFIG_ORIGEM, 'r') as f:
+    with open(CONFIG_ORIGEM, "r") as f:
         linhas = f.readlines()
 
     # entradas ficam no fim do menu
@@ -88,24 +88,24 @@ def criar_entrada_boot(snap_nome, ent_conf):
     for l in linhas:
         l = l.strip()
 
-        if l.startswith('sort-key'):
+        if l.startswith("sort-key"):
             continue
 
-        if l.startswith('title'):
+        if l.startswith("title"):
             nova_conf.append(f"{l} (snapshot {snap_nome})\n")
-        elif l.startswith('options'):
+        elif l.startswith("options"):
             l = substituir_ou_anexar(l, r"\b(?:ro|rw)\b", "ro")
             l = substituir_ou_anexar(l, r"rootflags=subvol=[^\s]+", f"rootflags=subvol={subvol_path}")
             l = substituir_ou_anexar(l, r"systemd\.volatile=[^\s]+", "systemd.volatile=overlay")
             nova_conf.append(f"{l}\n")
-        elif l.startswith('linux') or l.startswith('initrd'):
+        elif l.startswith("linux") or l.startswith("initrd"):
             l = l.split()
-            novo_arqv = os.path.join('/snapshots', snap_nome, os.path.basename(l[1]))
+            novo_arqv = os.path.join("/snapshots", snap_nome, os.path.basename(l[1]))
             nova_conf.append(f"{l[0]:<9}{novo_arqv}\n")
         else:
             nova_conf.append(f"{l}\n")
 
-    with open(ent_conf, 'w') as f:
+    with open(ent_conf, "w") as f:
         f.writelines(nova_conf)
 
     sync_esp()
@@ -130,7 +130,7 @@ def rotacionar_snapshots(snap_pref, dir_conf):
         if os.path.exists(conf_remove):
             os.remove(conf_remove)
 
-        boot_remove = os.path.join(ESP_MNT, 'snapshots', path)
+        boot_remove = os.path.join(ESP_MNT, "snapshots", path)
         if os.path.exists(boot_remove):
             shutil.rmtree(boot_remove)
 
@@ -145,7 +145,7 @@ def main():
         print("Este script precisa de privilégio de root.", file=sys.stderr)
         return 1
 
-    if btrfsutil.subvolume_path(ORIGEM) != '@':
+    if btrfsutil.subvolume_path(ORIGEM) != "@":
         print("Diretório raiz é um snapshot, saindo.", file=sys.stderr)
         return 0
 
@@ -157,11 +157,11 @@ def main():
         with inibe_desligamento():
             esperar_gerenciador_pacotes()
 
-            snap_base = ORIGEM.strip('/').replace('/', '-')
+            snap_base = ORIGEM.strip("/").replace("/", "-")
             snap_pref = f"@{snap_base}_"
             snap_nome = f"{snap_pref}{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             snap_path = os.path.join(DESTINO, snap_nome)
-            dir_boot = os.path.join(ESP_MNT, 'snapshots', snap_nome)
+            dir_boot = os.path.join(ESP_MNT, "snapshots", snap_nome)
             dir_conf = os.path.dirname(CONFIG_ORIGEM)
             ent_conf = os.path.join(dir_conf, f"{snap_nome}.conf")
 
