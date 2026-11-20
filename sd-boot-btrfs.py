@@ -43,6 +43,10 @@ def inibe_desligamento():
         if fd is not None:
             os.close(fd)
 
+def substituir_ou_anexar(texto, padrao, substituicao):
+    r, n = re.subn(padrao, substituicao, texto)
+    return r if n > 0 else f"{texto} {substituicao}"
+
 def esperar_gerenciador_pacotes():
     # requer root para processos de usuários diferentes
     procs = [p for p in psutil.process_iter(['exe', 'name']) if p.info['exe'] in GER_PKG]
@@ -90,8 +94,10 @@ def criar_entrada_boot(snap_nome, ent_conf):
         if l.startswith('title'):
             nova_conf.append(f"{l} (snapshot {snap_nome})\n")
         elif l.startswith('options'):
-            novo_subv = f"subvol={subvol_path}"
-            nova_conf.append(f"{re.sub(r'subvol=[^\s]+', novo_subv, l)}\n")
+            l = substituir_ou_anexar(l, r"\b(?:ro|rw)\b", "ro")
+            l = substituir_ou_anexar(l, r"rootflags=subvol=[^\s]+", f"rootflags=subvol={subvol_path}")
+            l = substituir_ou_anexar(l, r"systemd\.volatile=[^\s]+", "systemd.volatile=overlay")
+            nova_conf.append(f"{l}\n")
         elif l.startswith('linux') or l.startswith('initrd'):
             l = l.split()
             novo_arqv = os.path.join('/snapshots', snap_nome, os.path.basename(l[1]))
@@ -159,7 +165,7 @@ def main():
             dir_conf = os.path.dirname(CONFIG_ORIGEM)
             ent_conf = os.path.join(dir_conf, f"{snap_nome}.conf")
 
-            btrfsutil.create_snapshot(ORIGEM, snap_path)
+            btrfsutil.create_snapshot(ORIGEM, snap_path, read_only=True)
 
             try:
                 copiar_arquivos_boot(dir_boot)
