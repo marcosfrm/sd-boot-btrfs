@@ -95,8 +95,8 @@ def criar_entrada_boot(snap_nome, ent_conf):
             nova_conf.append(f"{l} (snapshot {snap_nome})\n")
         elif l.startswith("options"):
             l = substituir_ou_anexar(l, r"\b(?:ro|rw)\b", "ro")
-            l = substituir_ou_anexar(l, r"rootflags=subvol=[^\s]+", f"rootflags=subvol={subvol_path}")
-            l = substituir_ou_anexar(l, r"systemd\.volatile=[^\s]+", "systemd.volatile=overlay")
+            l = substituir_ou_anexar(l, r"rootflags=subvol=\S+", f"rootflags=subvol={subvol_path}")
+            l = substituir_ou_anexar(l, r"systemd\.volatile=\S+", "systemd.volatile=overlay")
             nova_conf.append(f"{l}\n")
         elif l.startswith("linux") or l.startswith("initrd"):
             l = l.split()
